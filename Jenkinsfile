@@ -94,7 +94,7 @@ pipeline {
 
     stage('Deploy to Kubernetes') {
       steps {
-        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+        
           sh 'kubectl apply -f k8s/namespace.yaml'
           sh 'kubectl apply -f k8s/configmap.yaml -f k8s/secrets.yaml -f k8s/postgres.yaml'
           sh 'kubectl apply -f k8s/deployments.yaml -f k8s/services.yaml -f k8s/ingress.yaml'
@@ -108,5 +108,5 @@ pipeline {
       }
     }
   }
-}
+
 
