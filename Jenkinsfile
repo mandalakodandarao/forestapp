@@ -19,7 +19,7 @@ pipeline {
         stage('API Gateway') {
           steps {
             dir('services/api-gateway') {
-              sh 'npm ci'
+              sh 'npm install'
               sh 'npm test'
             }
           }
@@ -27,7 +27,7 @@ pipeline {
         stage('User Service') {
           steps {
             dir('services/user-service') {
-              sh 'npm ci'
+              sh 'npm install'
               sh 'npm test'
             }
           }
@@ -35,7 +35,7 @@ pipeline {
         stage('Product Service') {
           steps {
             dir('services/product-service') {
-              sh 'npm ci'
+              sh 'npm install'
               sh 'npm test'
             }
           }
@@ -43,7 +43,7 @@ pipeline {
         stage('Order Service') {
           steps {
             dir('services/order-service') {
-              sh 'npm ci'
+              sh 'npm install'
               sh 'npm test'
             }
           }
@@ -51,7 +51,7 @@ pipeline {
         stage('Notification Service') {
           steps {
             dir('services/notification-service') {
-              sh 'npm ci'
+              sh 'npm install'
               sh 'npm test'
             }
           }
@@ -59,7 +59,7 @@ pipeline {
         stage('Frontend') {
           steps {
             dir('frontend') {
-              sh 'npm ci'
+              sh 'npm install'
               sh 'npm run build'
             }
           }
