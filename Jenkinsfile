@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    REGISTRY = 'ghcr.io/your-org'
+    REGISTRY = 'mandalakodanda'
     IMAGE_TAG = "${env.BUILD_NUMBER}"
     KUBE_NAMESPACE = 'forestroots'
   }
@@ -81,7 +81,7 @@ pipeline {
     stage('Push Images') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASSWORD')]) {
-          sh 'echo $REGISTRY_PASSWORD | docker login ghcr.io -u $REGISTRY_USER --password-stdin'
+          sh 'echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USER --password-stdin'
           sh 'docker push $REGISTRY/forestroots-api-gateway:$IMAGE_TAG'
           sh 'docker push $REGISTRY/forestroots-user-service:$IMAGE_TAG'
           sh 'docker push $REGISTRY/forestroots-product-service:$IMAGE_TAG'
