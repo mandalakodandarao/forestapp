@@ -1,0 +1,112 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-forestroots}
+      POSTGRES_USER: ${POSTGRES_USER:-forestroots}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-forestroots_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init-microservices.sql:/docker-entrypoint-initdb.d/00-init-microservices.sql:ro
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-forestroots} -d ${POSTGRES_DB:-forestroots}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:5173}
+      USER_SERVICE_URL: http://user-service:4101
+      PRODUCT_SERVICE_URL: http://product-service:4102
+      ORDER_SERVICE_URL: http://order-service:4103
+      NOTIFICATION_SERVICE_URL: http://notification-service:4104
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+      - notification-service
+    ports:
+      - "8080:8080"
+
+  user-service:
+    build:
+      context: ./services/user-service
+    environment:
+      PORT: 4101
+      DATABASE_URL: postgres://${POSTGRES_USER:-forestroots}:${POSTGRES_PASSWORD:-forestroots_password}@postgres:5432/forestroots_users
+      JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-secret}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "4101:4101"
+
+  product-service:
+    build:
+      context: ./services/product-service
+    environment:
+      PORT: 4102
+      DATABASE_URL: postgres://${POSTGRES_USER:-forestroots}:${POSTGRES_PASSWORD:-forestroots_password}@postgres:5432/forestroots_products
+      JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-secret}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "4102:4102"
+
+  order-service:
+    build:
+      context: ./services/order-service
+    environment:
+      PORT: 4103
+      DATABASE_URL: postgres://${POSTGRES_USER:-forestroots}:${POSTGRES_PASSWORD:-forestroots_password}@postgres:5432/forestroots_orders
+      JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-secret}
+      PRODUCT_SERVICE_URL: http://product-service:4102
+      NOTIFICATION_SERVICE_URL: http://notification-service:4104
+    depends_on:
+      postgres:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+    ports:
+      - "4103:4103"
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+    environment:
+      PORT: 4104
+      DATABASE_URL: postgres://${POSTGRES_USER:-forestroots}:${POSTGRES_PASSWORD:-forestroots_password}@postgres:5432/forestroots_notifications
+      JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-secret}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "4104:4104"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8080/api
+    environment:
+      VITE_API_URL: http://localhost:8080/api
+    depends_on:
+      - api-gateway
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres-data:

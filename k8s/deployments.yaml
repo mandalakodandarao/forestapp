@@ -1,0 +1,199 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: forestroots
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: ghcr.io/your-org/forestroots-api-gateway:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: forestroots-config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: forestroots
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: ghcr.io/your-org/forestroots-user-service:latest
+          ports:
+            - containerPort: 4101
+          env:
+            - name: PORT
+              value: "4101"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: forestroots-secrets
+                  key: DATABASE_URL_USERS
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: forestroots-secrets
+                  key: JWT_SECRET
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4101
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: forestroots
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+        - name: product-service
+          image: ghcr.io/your-org/forestroots-product-service:latest
+          ports:
+            - containerPort: 4102
+          env:
+            - name: PORT
+              value: "4102"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: forestroots-secrets
+                  key: DATABASE_URL_PRODUCTS
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: forestroots-secrets
+                  key: JWT_SECRET
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4102
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: forestroots
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: ghcr.io/your-org/forestroots-order-service:latest
+          ports:
+            - containerPort: 4103
+          env:
+            - name: PORT
+              value: "4103"
+            - name: PRODUCT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: forestroots-config
+                  key: PRODUCT_SERVICE_URL
+            - name: NOTIFICATION_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: forestroots-config
+                  key: NOTIFICATION_SERVICE_URL
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: forestroots-secrets
+                  key: DATABASE_URL_ORDERS
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: forestroots-secrets
+                  key: JWT_SECRET
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4103
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: forestroots
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: ghcr.io/your-org/forestroots-notification-service:latest
+          ports:
+            - containerPort: 4104
+          env:
+            - name: PORT
+              value: "4104"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: forestroots-secrets
+                  key: DATABASE_URL_NOTIFICATIONS
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: forestroots-secrets
+                  key: JWT_SECRET
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4104
+            initialDelaySeconds: 10
+            periodSeconds: 10
