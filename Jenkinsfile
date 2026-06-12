@@ -80,7 +80,7 @@ pipeline {
 
     stage('Push Images') {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'container-registry', usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASSWORD')]) {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASSWORD')]) {
           sh 'echo $REGISTRY_PASSWORD | docker login ghcr.io -u $REGISTRY_USER --password-stdin'
           sh 'docker push $REGISTRY/forestroots-api-gateway:$IMAGE_TAG'
           sh 'docker push $REGISTRY/forestroots-user-service:$IMAGE_TAG'
