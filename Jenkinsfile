@@ -93,20 +93,23 @@ pipeline {
     }
 
     stage('Deploy to Kubernetes') {
-      steps {
-        
-          sh 'kubectl apply -f k8s/namespace.yaml'
-          sh 'kubectl apply -f k8s/configmap.yaml -f k8s/secrets.yaml -f k8s/postgres.yaml'
-          sh 'kubectl apply -f k8s/deployments.yaml -f k8s/services.yaml -f k8s/ingress.yaml'
-          sh 'kubectl -n $KUBE_NAMESPACE set image deployment/api-gateway api-gateway=$REGISTRY/forestroots-api-gateway:$IMAGE_TAG'
-          sh 'kubectl -n $KUBE_NAMESPACE set image deployment/user-service user-service=$REGISTRY/forestroots-user-service:$IMAGE_TAG'
-          sh 'kubectl -n $KUBE_NAMESPACE set image deployment/product-service product-service=$REGISTRY/forestroots-product-service:$IMAGE_TAG'
-          sh 'kubectl -n $KUBE_NAMESPACE set image deployment/order-service order-service=$REGISTRY/forestroots-order-service:$IMAGE_TAG'
-          sh 'kubectl -n $KUBE_NAMESPACE set image deployment/notification-service notification-service=$REGISTRY/forestroots-notification-service:$IMAGE_TAG'
-          sh 'kubectl -n $KUBE_NAMESPACE rollout status deployment/api-gateway'
-        }
-      }
+  steps {
+
+    sh 'kubectl apply -f k8s/namespace.yaml'
+    sh 'kubectl apply -f k8s/configmap.yaml -f k8s/secrets.yaml -f k8s/postgres.yaml'
+    sh 'kubectl apply -f k8s/deployments.yaml -f k8s/services.yaml -f k8s/ingress.yaml'
+
+    sh 'kubectl -n $KUBE_NAMESPACE set image deployment/api-gateway api-gateway=$REGISTRY/forestroots-api-gateway:$IMAGE_TAG'
+    sh 'kubectl -n $KUBE_NAMESPACE set image deployment/user-service user-service=$REGISTRY/forestroots-user-service:$IMAGE_TAG'
+    sh 'kubectl -n $KUBE_NAMESPACE set image deployment/product-service product-service=$REGISTRY/forestroots-product-service:$IMAGE_TAG'
+    sh 'kubectl -n $KUBE_NAMESPACE set image deployment/order-service order-service=$REGISTRY/forestroots-order-service:$IMAGE_TAG'
+    sh 'kubectl -n $KUBE_NAMESPACE set image deployment/notification-service notification-service=$REGISTRY/forestroots-notification-service:$IMAGE_TAG'
+
+    sh 'kubectl -n $KUBE_NAMESPACE set image deployment/frontend frontend=$REGISTRY/forestroots-frontend:$IMAGE_TAG'
+
+    sh 'kubectl -n $KUBE_NAMESPACE rollout status deployment/api-gateway'
+    sh 'kubectl -n $KUBE_NAMESPACE rollout status deployment/frontend'
+       }
     }
   }
-
-
+}
