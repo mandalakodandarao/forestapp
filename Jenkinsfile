@@ -103,7 +103,6 @@ pipeline {
           sh 'kubectl -n $KUBE_NAMESPACE set image deployment/product-service product-service=$REGISTRY/forestroots-product-service:$IMAGE_TAG'
           sh 'kubectl -n $KUBE_NAMESPACE set image deployment/order-service order-service=$REGISTRY/forestroots-order-service:$IMAGE_TAG'
           sh 'kubectl -n $KUBE_NAMESPACE set image deployment/notification-service notification-service=$REGISTRY/forestroots-notification-service:$IMAGE_TAG'
-          sh 'kubectl -n forestroots set image deployment/frontend frontend=mandalakodanda/forestroots-frontend:$IMAGE_TAG'
           sh 'kubectl -n $KUBE_NAMESPACE rollout status deployment/api-gateway'
         }
       }
