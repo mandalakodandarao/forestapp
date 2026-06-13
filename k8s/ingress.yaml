@@ -18,4 +18,30 @@ spec:
                 name: api-gateway
                 port:
                   number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: forestroots-ingress
+  namespace: forestroots
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: forestroots.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80
 
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 8080
